@@ -1,0 +1,301 @@
+# Name: Arnes Kapic
+# Class: CIS152 12742-13083
+# Program Name: Digital Music Player Final Project
+
+# Importing a package for line separation and proper format and making a deep copy of the playlist onto the stack
+import copy
+from rich.console import Console
+import rich.table
+
+
+# Creating class node for representing nodes/songs in the music playlist while referencing each node to the next
+class Node:
+    def __init__(self, artist, song_name, genre):
+        self.artist = artist
+        self.song_name = song_name
+        self.genre = genre
+        self.next_node = None
+
+
+# Creating class stack for representing the previous states of the playlist so users may undo
+# their actions
+class Stack:
+    def __init__(self):
+        self.items = []
+
+    def is_empty(self):
+        return len(self.items) == 0
+
+    def push(self, item):
+        self.items.append(item)
+
+    def pop(self):
+        if not self.is_empty():
+            return self.items.pop()
+
+    def peek(self):
+        if not self.is_empty():
+            return self.items[-1]
+
+    def size(self):
+        return len(self.items)
+
+
+# Creating this function for indicating when a song name has a similar one within the music playlist
+# It will print out a statement stating it
+def song_duplicate_display(song_name):
+    print("\nSong Not Added\nThe song '{}' is already within the playlist.\n".format(song_name))
+
+
+# Creating this function for indicating when the song name is discovered
+# It prints out the details found within the music playlist
+def song_discovered_display(song_name, artist, genre):
+    print("\nThe song '{}' was discovered within the music playlist.\n".format(song_name))
+    print("Artist: {}".format(artist))
+    print("Genre: {}".format(genre))
+
+
+# Creating this function for indicating when the song name is not discovered
+# It prints out the details found within the music playlist
+def song_not_discovered_display(song_name):
+    print("\nSong Not Discovered\nThe song '{}' was not discovered in the music playlist.\n".format(song_name))
+
+
+# Creating this function for indicating when the song name is deleted.
+# It prints out a statement stating it
+def song_deleted_display(song_name):
+    print("\nThe song '{}' has been deleted from the music playlist.\n".format(song_name))
+
+
+# Creating this function for indicating when the music playlist is empty
+# It prints out a statement stating it
+def song_empty_playlist():
+    print("\nThe music playlist is barren :(\n")
+
+
+# Creating this function for printing the music playlist
+# It prints out a statement stating it
+def song_user_playlist(playlist_start):
+    pointer = playlist_start
+
+    if pointer is None:
+        song_empty_playlist()
+    else:
+        print("\nMy Music Playlist \n")
+        while pointer is not None:
+            print("Song Name: {}".format(pointer.song_name))
+            print("Artist: {}".format(pointer.artist))
+            print("Genre: {}".format(pointer.genre))
+            print("\n")
+            pointer = pointer.next_node
+
+
+# Creating this function for searching the song within the music playlist
+# It does not print the statement here, but it will help with the action by using while and if statements to check if
+# the start variable is empty while comparing variables to see if they store the same node (song).
+def song_playlist_search(playlist_start, song_discovered):
+    if playlist_start is None:
+        return
+
+    pointer = playlist_start
+    while pointer is not None:
+        if pointer.song_name == song_discovered:
+            song_discovered_display(pointer.song_name, pointer.artist, pointer.genre)
+            return
+
+        pointer = pointer.next_node
+    song_not_discovered_display(song_discovered)
+
+
+def song_playlist_amount(playlist_start):
+    amount = 0
+    pointer = playlist_start
+
+    while pointer is not None:
+        amount += 1
+        pointer = pointer.next_node
+
+    return amount
+
+
+def song_playlist_playing(playlist_start, song_playing):
+    if playlist_start is None:
+        song_empty_playlist()
+        return
+
+    pointer = playlist_start
+
+    while pointer is not None:
+        if pointer.song_name == song_playing:
+            print("\nNow playing: '{}' by {}".format(pointer.song_name, pointer.artist))
+            return
+        pointer = pointer.next_node
+
+    song_not_discovered_display(song_playing)
+
+
+# Creating this function for indicating if the song is already within the music playlist
+# It does not print the statement here, but it will help with the action by using while and if statements to check
+# if the start variable is empty while comparing variables to see if node (song) is found within the music playlist.
+def song_playlist_duplicate(playlist_start, song_discovered):
+    if playlist_start is None:
+        return False
+
+    pointer = playlist_start
+    while pointer is not None:
+        if pointer.song_name == song_discovered:
+            return True
+
+        pointer = pointer.next_node
+
+    return False
+
+
+# Creating this function for properly ordering the node (song) within the music playlist
+# It does not print a statement but helps perform the action by storing it in start variable additionally using while
+# and if statements to check if start variable meets parameters sorting them starting by the song name.
+def song_playlist_reorganization(playlist_start, song_name, artist, genre):
+    next_node = playlist_start
+
+    if playlist_start is None or playlist_start.song_name > song_name:
+        insert = Node(artist, song_name, genre)
+        insert.next_node = next_node
+        return insert
+
+    pointer = playlist_start
+    while pointer.next_node is not None and pointer.next_node.song_name < song_name:
+        pointer = pointer.next_node
+
+    insert = Node(artist, song_name, genre)
+    insert.next_node = pointer.next_node
+    pointer.next_node = insert
+
+    return playlist_start
+
+
+# Creating this function for properly deleting the node (song) within the music playlist
+# It does not print a statement but helps perform the action by storing it in start variable additionally using while
+# and if statements to check if start variable meets parameters deleting the node.
+def song_playlist_delete(playlist_start, songIntendedToBeDeleted):
+    if playlist_start is None:
+        return None
+
+    if playlist_start.song_name == songIntendedToBeDeleted:
+        song_deleted_display(playlist_start.song_name)
+        return playlist_start.next_node
+
+    song_located = False
+    pointer = playlist_start
+
+    while not song_located and pointer.next_node is not None:
+        if pointer.next_node.song_name == songIntendedToBeDeleted:
+            song_located = True
+        else:
+            pointer = pointer.next_node
+
+    if pointer.next_node is not None:
+        song_delete = pointer.next_node
+        pointer.next_node = pointer.next_node.next_node
+        song_deleted_display(song_delete.song_name)
+
+    return playlist_start
+
+
+# Creating this function for properly deleting all nodes (songs) from the music playlist
+# It does not print a statement but helps perform the action by using the start variable while it's none to start
+# erasing the songs when quitting the digital music player.
+def song_playlist_nodes_deleted(playlist_start):
+    while playlist_start is not None:
+        node_start = playlist_start
+        playlist_start = playlist_start.next_node
+        song_deleted_display(node_start.song_name)
+
+    return playlist_start
+
+
+def dms_menu():
+    table = rich.table.Table(title="THANKS FOR USING US" + "\n"
+                                   + " WE HOPE YOU ENJOY!")
+
+    table.add_column("#'s")
+    table.add_column("DMS Player Options")
+
+    table.add_row("(P)", "Play Song")
+    table.add_row("(A)", "Add Song")
+    table.add_row("(D)", "Delete Song")
+    table.add_row("(U)", "Undo Deleted Option")
+    table.add_row("(C)", "Total Count of Songs")
+    table.add_row("(L)", "List of Playlist")
+    table.add_row("(S)", "Search Song within Playlist")
+    table.add_row("(Q)", "Quit Menu")
+
+    console = Console()
+    console.print(table)
+
+
+# Running the program
+# Initializing the music playlist while also displaying the list of options that the user may choose within their
+# playlist. The main loop down below is used for performing the action at which the user may actually interact with it.
+def main():
+    playlist_start = None
+    undo_stack = Stack()
+    dms_menu()
+    response = ''
+
+    while response != 'Q':
+        user_input = input("What option would you like to choose? ")
+        response = user_input[0].upper()
+
+        if response == 'P':
+            song_to_play = input("What song would you like to play? ")
+            song_playlist_playing(playlist_start, song_to_play)
+
+        elif response == 'C':
+            num_songs = song_playlist_amount(playlist_start)
+            print("\nAmount of Songs: {}\n".format(num_songs))
+
+        elif response == 'A':
+            song_name = input("What is the song name? ")
+            artist = input("What is the artist's name? ")
+            genre = input("What is the genre? ")
+
+            if not song_playlist_duplicate(playlist_start, song_name):
+                playlist_start = song_playlist_reorganization(playlist_start, song_name, artist, genre)
+                undo_stack.push(copy.deepcopy(playlist_start))
+            else:
+                song_duplicate_display(song_name)
+
+        elif response == 'D':
+            song_name = input("What song would you like to delete? ")
+            undo_stack.push(copy.deepcopy(playlist_start))
+            playlist_start = song_playlist_delete(playlist_start, song_name)
+
+        elif response == 'S':
+            song_name = input("What song would you like to search? ")
+            song_playlist_search(playlist_start, song_name)
+
+        elif response == 'L':
+            song_user_playlist(playlist_start)
+
+        elif response == 'U':
+            if not undo_stack.is_empty():
+                playlist_start = undo_stack.pop()
+                print("\nUndo has been done!\n")
+            else:
+                print("\nI'm sorry. The undo has not been successful\n")
+
+        elif response == 'Q':
+            exit()
+
+        else:
+            print("\nI'm sorry. I did not understand :/\n")
+
+    # Deleting all nodes (songs) from the music library before exiting
+    playlist_start = song_playlist_nodes_deleted(playlist_start)
+
+    # Printing the music library after all modifications
+    song_user_playlist(playlist_start)
+
+
+if __name__ == "__main__":
+    main()
