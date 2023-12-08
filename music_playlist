@@ -106,7 +106,9 @@ def song_playlist_search(playlist_start, song_discovered):
         pointer = pointer.next_node
     song_not_discovered_display(song_discovered)
 
-
+# Creating this function for totaling the amount of songs within the music playlist
+# It does not print the statement here, but it will help with the action by using a while statement to check if
+# the pointer variable is not empty and will add the amount for each node (song).
 def song_playlist_amount(playlist_start):
     amount = 0
     pointer = playlist_start
@@ -117,7 +119,10 @@ def song_playlist_amount(playlist_start):
 
     return amount
 
-
+# Creating this function for playing the song chosen by the user within the music playlist.
+# It does print the statement of what song the user is playing, but it will help with the action by using while and
+# if statements to check if the playlist_start variable is empty and the pointer variable is not empty to play the
+# intended song the user has chosen.
 def song_playlist_playing(playlist_start, song_playing):
     if playlist_start is None:
         song_empty_playlist()
@@ -212,7 +217,8 @@ def song_playlist_nodes_deleted(playlist_start):
 
     return playlist_start
 
-
+# Creating this function for properly formatting the music player for the user adding columns and rows for all the
+# additional features as well as the title for the users using the program.
 def dms_menu():
     table = rich.table.Table(title="THANKS FOR USING US" + "\n"
                                    + " WE HOPE YOU ENJOY!")
@@ -241,19 +247,22 @@ def main():
     undo_stack = Stack()
     dms_menu()
     response = ''
-
+    
     while response != 'Q':
         user_input = input("What option would you like to choose? ")
         response = user_input[0].upper()
 
+        # Play Operation
         if response == 'P':
             song_to_play = input("What song would you like to play? ")
             song_playlist_playing(playlist_start, song_to_play)
 
+        # Count Operation
         elif response == 'C':
             num_songs = song_playlist_amount(playlist_start)
             print("\nAmount of Songs: {}\n".format(num_songs))
 
+        # Add Operation
         elif response == 'A':
             song_name = input("What is the song name? ")
             artist = input("What is the artist's name? ")
@@ -265,18 +274,22 @@ def main():
             else:
                 song_duplicate_display(song_name)
 
+        # Delete Operation
         elif response == 'D':
             song_name = input("What song would you like to delete? ")
             undo_stack.push(copy.deepcopy(playlist_start))
             playlist_start = song_playlist_delete(playlist_start, song_name)
 
+        # Search Operation
         elif response == 'S':
             song_name = input("What song would you like to search? ")
             song_playlist_search(playlist_start, song_name)
 
+        # List Operation
         elif response == 'L':
             song_user_playlist(playlist_start)
 
+        # Undo Operation
         elif response == 'U':
             if not undo_stack.is_empty():
                 playlist_start = undo_stack.pop()
@@ -284,6 +297,7 @@ def main():
             else:
                 print("\nI'm sorry. The undo has not been successful\n")
 
+        # Quit Operation
         elif response == 'Q':
             exit()
 
